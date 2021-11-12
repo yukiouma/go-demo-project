@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package customer.v1;
+
+option go_package = "go-demo-project/api/customer/v1;v1";
+
+service CustomerService {
+  rpc FindCustomer (FindCustomerRequest) returns (CustomerReply) {}
+  rpc RegisterCustomer (RegisterCustomerRequest) returns (CustomerReply) {}
+  rpc UpdateCustomer (Customer) returns (CustomerReply) {}
+  rpc RemoveCustomer (FindCustomerRequest ) returns (RemoveCustomerReply) {}
+}
+
+message FindCustomerRequest {
+  int64 id = 1;
+}
+
+message RegisterCustomerRequest {
+  string name = 1;
+}
+
+message CustomerReply {
+  Customer data = 1;
+  string message = 2;
+}
+
+message Customer {
+  int64 id = 1;
+  string name = 2;
+}
+
+message RemoveCustomerReply {
+  string message = 1;
+}

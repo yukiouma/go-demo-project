@@ -3,12 +3,13 @@ package biz
 import (
 	"context"
 	"errors"
+	"time"
 )
 
 type Book struct {
-	ID    int
-	Name  string
-	Saled bool
+	ID      int
+	Name    string
+	SaledAt time.Time
 }
 
 var ErrBookNotFound = errors.New("error: book is not found")
@@ -22,12 +23,6 @@ type BookRepo interface {
 
 type BookUsecase struct {
 	repo BookRepo
-}
-
-func NewBookUsecase(repo BookRepo) *BookUsecase {
-	return &BookUsecase{
-		repo: repo,
-	}
 }
 
 // 按id查找书
@@ -45,17 +40,17 @@ func (uc *BookUsecase) SaleOneBook(ctx context.Context, id int) (*Book, error) {
 	if err != nil {
 		return nil, err
 	}
-	if book.Saled {
+	if !book.SaledAt.IsZero() {
 		return book, ErrBookSaled
 	}
+	book.SaledAt = time.Now()
 	return uc.repo.SaveBook(book)
 }
 
 // 上架一本书
 func (uc *BookUsecase) NewBook(ctx context.Context, name string) (*Book, error) {
 	newBook := &Book{
-		Name:  name,
-		Saled: false,
+		Name: name,
 	}
 	return uc.repo.SaveBook(newBook)
 }

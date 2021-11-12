@@ -1,6 +1,7 @@
-package book
+package v1
 
 import (
+	context "context"
 	"net/http"
 	"os"
 	"runtime"
@@ -10,25 +11,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type BookHttpServer interface {
-	FindOneBook(q *QueryBookReq) (*BookRes, error)
-	SaleOneBook(q *QueryBookReq) (*BookRes, error)
-	NewOneBook(q *SaveBookReq) (*BookRes, error)
-	DeleteOneBook(q *QueryBookReq) (*DeleteBookRes, error)
-}
-
-func RegisterBookHttpServer(engine *gin.Engine, server BookHttpServer) {
-	g := engine.Group(prefix())
+func RegisterBookHttpServer(engine *gin.Engine, server BookServiceServer) {
+	g := engine.Group(Prefix())
+	// g := engine.Group("/api/book/v1/")
 	{
-		g.GET("/find/:id", FindOneBookTransfer(server.FindOneBook))
-		g.POST("/new", NewOneBookTransfer(server.NewOneBook))
-		g.GET("/sale/:id", SaleOneBookTransfer(server.SaleOneBook))
-		g.DELETE("/delete/:id", DeleteOneBookTransfer(server.DeleteOneBook))
+		g.GET("/find/:id", FindBookTransfer(server.FindBook))
+		g.POST("/new", NewBookTransfer(server.NewBook))
+		g.GET("/sale/:id", SaleBookTransfer(server.SaleBook))
+		g.DELETE("/delete/:id", DeleteBookTransfer(server.DeleteBook))
 	}
 }
 
 // get api prefix according file location
-func prefix() string {
+func Prefix() string {
 	dir, err := os.Getwd()
 	if err != nil {
 		panic(err)
@@ -42,94 +37,73 @@ func prefix() string {
 	return strings.Join(dirFrag, "/")
 }
 
-// request and response parameter definitions
-type QueryBookReq struct {
-	ID int
-}
-
-type SaveBookReq struct {
-	ID    int    `json:"id"`
-	Name  string `json:"name" binding:"reuqired"`
-	Saled bool   `json:"saled" binding:"reuqired"`
-}
-
-type Book struct {
-	ID    int    `json:"id"`
-	Name  string `json:"name"`
-	Saled bool   `json:"saled"`
-}
-
-type BookRes struct {
-	Data    *Book  `json:"data"`
-	Message string `json:"message"`
-}
-
-type DeleteBookRes struct {
-	Message string `json:"message"`
-}
-
 // transfer restful request method to gin handler functions
-func FindOneBookTransfer(f func(q *QueryBookReq) (*BookRes, error)) gin.HandlerFunc {
+func FindBookTransfer(f func(ctx context.Context, in *FindBookRequest) (*BookReply, error)) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		q := new(QueryBookReq)
-		id, err := strconv.Atoi(c.Param("id"))
+		in := new(FindBookRequest)
+		// id, err := strconv.Atoi(c.Param("id"))
+		id, err := strconv.ParseInt((c.Param("id")), 10, 64)
 		if err != nil {
 			c.String(http.StatusBadRequest, "invalid id")
 			return
 		}
-		q.ID = id
-		book, err := f(q)
+		in.Id = id
+		book, err := f(context.Background(), in)
 		if err != nil {
-			c.String(http.StatusBadRequest, err.Error())
+			c.String(http.StatusInternalServerError, err.Error())
+			return
 		}
 		c.AsciiJSON(http.StatusOK, book)
 	}
 }
 
-func SaleOneBookTransfer(f func(q *QueryBookReq) (*BookRes, error)) gin.HandlerFunc {
+func SaleBookTransfer(f func(ctx context.Context, in *SaleBookRequest) (*BookReply, error)) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		q := new(QueryBookReq)
-		id, err := strconv.Atoi(c.Param("id"))
+		in := new(SaleBookRequest)
+		id, err := strconv.ParseInt((c.Param("id")), 10, 64)
 		if err != nil {
 			c.String(http.StatusBadRequest, "invalid id")
 			return
 		}
-		q.ID = id
-		book, err := f(q)
+		in.Id = id
+		book, err := f(context.Background(), in)
 		if err != nil {
-			c.String(http.StatusBadRequest, err.Error())
+			c.String(http.StatusInternalServerError, err.Error())
+			return
 		}
 		c.AsciiJSON(http.StatusOK, book)
 	}
 }
 
-func DeleteOneBookTransfer(f func(q *QueryBookReq) (*DeleteBookRes, error)) gin.HandlerFunc {
+func DeleteBookTransfer(f func(ctx context.Context, in *DeleteBookRequest) (*DeleteBookReply, error)) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		q := new(QueryBookReq)
-		id, err := strconv.Atoi(c.Param("id"))
+		in := new(DeleteBookRequest)
+		id, err := strconv.ParseInt((c.Param("id")), 10, 64)
 		if err != nil {
 			c.String(http.StatusBadRequest, "invalid id")
 			return
 		}
-		q.ID = id
-		book, err := f(q)
+		in.Id = id
+		book, err := f(context.Background(), in)
 		if err != nil {
-			c.String(http.StatusBadRequest, err.Error())
+			c.String(http.StatusInternalServerError, err.Error())
+			return
 		}
 		c.AsciiJSON(http.StatusOK, book)
 	}
 }
 
-func NewOneBookTransfer(f func(q *SaveBookReq) (*BookRes, error)) gin.HandlerFunc {
+func NewBookTransfer(f func(ctx context.Context, in *NewBookRequest) (*BookReply, error)) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var q SaveBookReq
-		if err := c.ShouldBind(&q); err != nil {
+		var in NewBookRequest
+		if err := c.ShouldBind(&in); err != nil {
 			c.String(http.StatusBadRequest, "missing field")
 			return
 		}
-		book, err := f(&q)
+		book, err := f(context.Background(), &in)
 		if err != nil {
-			c.String(http.StatusBadRequest, err.Error())
+			c.String(http.StatusInternalServerError, err.Error())
+			return
 		}
 		c.AsciiJSON(http.StatusOK, book)
 	}

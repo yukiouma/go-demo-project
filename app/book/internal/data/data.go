@@ -1,14 +1,15 @@
 package data
 
 import (
+	"frame/app/book/internal/biz"
 	"frame/app/book/internal/conf"
 
 	"github.com/google/wire"
 )
 
-var ProvideSet = wire.NewSet(NewBookRepo, NewBD)
+var ProvideSet = wire.NewSet(NewBD, NewBookRepo)
 
-func NewBD(conf *conf.Conf) (fakeDB, error) {
+func NewBD(conf *conf.ConfDB) fakeDB {
 	db := make(fakeDB)
 	err := db.Dial(
 		conf.Host,
@@ -17,13 +18,13 @@ func NewBD(conf *conf.Conf) (fakeDB, error) {
 		conf.Password,
 	)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
-	return db, nil
+	return db
 }
 
-func NewBookRepo(db fakeDB) *BookRepo {
-	return &BookRepo{
+func NewBookRepo(db fakeDB) biz.BookRepo {
+	return &bookRepo{
 		db: db,
 	}
 }

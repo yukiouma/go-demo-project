@@ -13,14 +13,14 @@ var errNotExist = errors.New("error: record not existed")
 var errDialFailed = errors.New("error: dail failed")
 
 type row struct {
-	id    int
-	name  string
-	saled bool
+	id      int
+	name    string
+	saledAt time.Time
 }
 
 type fakeDB map[int]*row
 
-type BookRepo struct {
+type bookRepo struct {
 	db fakeDB
 	sync.RWMutex
 }
@@ -34,9 +34,9 @@ func (d *fakeDB) Dial(host, port, user, password string) error {
 	return errDialFailed
 }
 
-var _ biz.BookRepo = new(BookRepo)
+var _ biz.BookRepo = new(bookRepo)
 
-func (r *BookRepo) FindBookByID(id int) (*biz.Book, error) {
+func (r *bookRepo) FindBookByID(id int) (*biz.Book, error) {
 	r.RLock()
 	defer r.RUnlock()
 	book, ok := r.db[id]
@@ -44,13 +44,13 @@ func (r *BookRepo) FindBookByID(id int) (*biz.Book, error) {
 		return nil, errNotFound
 	}
 	return &biz.Book{
-		ID:    book.id,
-		Name:  book.name,
-		Saled: book.saled,
+		ID:      book.id,
+		Name:    book.name,
+		SaledAt: book.saledAt,
 	}, nil
 }
 
-func (r *BookRepo) SaveBook(book *biz.Book) (*biz.Book, error) {
+func (r *bookRepo) SaveBook(book *biz.Book) (*biz.Book, error) {
 	r.Lock()
 	defer r.Unlock()
 	if book.ID == 0 {
@@ -61,31 +61,31 @@ func (r *BookRepo) SaveBook(book *biz.Book) (*biz.Book, error) {
 	return r.updateBook(book)
 }
 
-func (r *BookRepo) createBook(book *biz.Book) (*biz.Book, error) {
+func (r *bookRepo) createBook(book *biz.Book) (*biz.Book, error) {
 	if _, ok := r.db[book.ID]; ok {
 		return nil, errExist
 	}
 	r.db[book.ID] = &row{
-		id:    book.ID,
-		name:  book.Name,
-		saled: book.Saled,
+		id:      book.ID,
+		name:    book.Name,
+		saledAt: book.SaledAt,
 	}
 	return book, nil
 }
 
-func (r *BookRepo) updateBook(book *biz.Book) (*biz.Book, error) {
+func (r *bookRepo) updateBook(book *biz.Book) (*biz.Book, error) {
 	if _, ok := r.db[book.ID]; !ok {
 		return nil, errNotExist
 	}
 	r.db[book.ID] = &row{
-		id:    book.ID,
-		name:  book.Name,
-		saled: book.Saled,
+		id:      book.ID,
+		name:    book.Name,
+		saledAt: book.SaledAt,
 	}
 	return book, nil
 }
 
-func (r *BookRepo) DeleteBook(id int) error {
+func (r *bookRepo) DeleteBook(id int) error {
 	_, ok := r.db[id]
 	if !ok {
 		return errNotFound

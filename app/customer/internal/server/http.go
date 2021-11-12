@@ -2,9 +2,9 @@ package server
 
 import (
 	"context"
-	v1 "frame/api/book/v1"
-	"frame/app/book/internal/conf"
-	"frame/app/book/internal/service"
+	v1 "frame/api/customer/v1"
+	"frame/app/customer/internal/conf"
+	"frame/app/customer/internal/service"
 	"frame/pkg/appmanage"
 	"net/http"
 
@@ -24,10 +24,10 @@ func (s *HttpServer) Serve(ctx context.Context) error {
 	}
 }
 
-func NewHttpServer(service *service.BookService, config *conf.HttpConf) appmanage.HttpServer {
+func NewHttpServer(service *service.CustomerService, config *conf.HttpConf) appmanage.HttpServer {
 	server := new(HttpServer)
 	engine := gin.Default()
-	v1.RegisterBookHttpServer(engine, service)
+	v1.RegisterCustomerHttpServer(engine, service)
 	server.server = &http.Server{
 		Addr:    config.Addr(),
 		Handler: engine,

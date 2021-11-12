@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package book.v1;
+
+import "google/protobuf/timestamp.proto";
+option go_package = "go-demo-project/api/book/v1;v1";
+
+service BookService {
+  rpc FindBook(FindBookRequest) returns (BookReply) {}
+  rpc SaleBook(SaleBookRequest) returns (BookReply) {}
+  rpc NewBook(NewBookRequest) returns (BookReply) {}
+  rpc DeleteBook(DeleteBookRequest) returns (DeleteBookReply) {}
+}
+
+message Book {
+  int64 id = 1;
+  string name = 2;
+  google.protobuf.Timestamp saledAt = 3;
+}
+
+message BookReply {
+  Book data = 1;
+  string message = 2;
+}
+
+message FindBookRequest {
+  int64 id = 1;
+}
+
+message SaleBookRequest {
+  int64 id = 1;
+}
+
+message NewBookRequest {
+  string name = 1;
+}
+
+message DeleteBookRequest {
+  int64 id = 1;
+}
+
+message DeleteBookReply {
+  string message = 1;
+}

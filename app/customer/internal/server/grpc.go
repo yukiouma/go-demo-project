@@ -3,9 +3,9 @@ package server
 import (
 	"context"
 	"errors"
-	v1 "frame/api/book/v1"
-	"frame/app/book/internal/conf"
-	"frame/app/book/internal/service"
+	v1 "frame/api/customer/v1"
+	"frame/app/customer/internal/conf"
+	"frame/app/customer/internal/service"
 	"frame/pkg/appmanage"
 	"net"
 
@@ -29,7 +29,7 @@ func (g *GrpcServer) Serve(ctx context.Context) error {
 	}
 }
 
-func NewGrpcServer(service *service.BookService, config *conf.GrpcConf) appmanage.GrpcServer {
+func NewGrpcServer(service *service.CustomerService, config *conf.GrpcConf) appmanage.GrpcServer {
 	server := new(GrpcServer)
 	lis, err := net.Listen("tcp", config.Addr())
 	server.listener = lis
@@ -38,7 +38,7 @@ func NewGrpcServer(service *service.BookService, config *conf.GrpcConf) appmanag
 	}
 	var opts []grpc.ServerOption
 	grpcServer := grpc.NewServer(opts...)
-	v1.RegisterBookServiceServer(grpcServer, service)
+	v1.RegisterCustomerServiceServer(grpcServer, service)
 	server.server = grpcServer
 	return server
 }

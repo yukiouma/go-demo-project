@@ -1,0 +1,16 @@
+{
+  "http": {
+    "host": "0.0.0.0",
+    "port": "8081"
+  },
+  "grpc": {
+    "host": "0.0.0.0",
+    "port": "8091"
+  },
+  "db": {
+    "host": "localhost",
+    "port": "3306",
+    "user": "root",
+    "password": "root"
+  }
+}
