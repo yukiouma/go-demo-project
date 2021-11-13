@@ -3,6 +3,7 @@ package appmanage
 import (
 	"context"
 	"log"
+	"os"
 
 	"golang.org/x/sync/errgroup"
 )
@@ -36,7 +37,7 @@ func (manage *AppManage) Register(info *RegisterInfo) {
 	manage.info = info
 }
 
-func (manage *AppManage) Run(ctx context.Context) {
+func (manage *AppManage) Run(ctx context.Context, signals ...os.Signal) {
 	group := new(errgroup.Group)
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -49,6 +50,13 @@ func (manage *AppManage) Run(ctx context.Context) {
 	})
 	group.Go(func() error {
 		err := manage.grpc.Serve(ctx)
+		if err != nil {
+			cancel()
+		}
+		return err
+	})
+	group.Go(func() error {
+		err := ReceiveSignal(ctx, signals)
 		if err != nil {
 			cancel()
 		}

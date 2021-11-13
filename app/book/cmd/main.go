@@ -4,6 +4,7 @@ import (
 	"context"
 	"frame/app/book/internal/conf"
 	"frame/pkg/appmanage"
+	"os"
 )
 
 func main() {
@@ -14,6 +15,6 @@ func main() {
 		Appid:   "book:v1",
 		AppName: "book manager service",
 	})
-	app.Run(ctx)
+	app.Run(ctx, os.Interrupt)
 	defer cancel()
 }

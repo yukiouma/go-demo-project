@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"errors"
 	v1 "frame/api/customer/v1"
 	"frame/app/customer/internal/conf"
 	"frame/app/customer/internal/service"
@@ -12,21 +11,17 @@ import (
 	"google.golang.org/grpc"
 )
 
-var errGrpcShutdown = errors.New("error: grpc server has been shutdown")
-
 type GrpcServer struct {
 	listener net.Listener
 	server   *grpc.Server
 }
 
 func (g *GrpcServer) Serve(ctx context.Context) error {
-	select {
-	case <-ctx.Done():
+	go func() {
+		<-ctx.Done()
 		g.server.Stop()
-		return errGrpcShutdown
-	default:
-		return g.server.Serve(g.listener)
-	}
+	}()
+	return g.server.Serve(g.listener)
 }
 
 func NewGrpcServer(service *service.CustomerService, config *conf.GrpcConf) appmanage.GrpcServer {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"frame/app/customer/internal/conf"
 	"frame/pkg/appmanage"
+	"os"
 )
 
 func main() {
@@ -14,6 +15,6 @@ func main() {
 		Appid:   "customer:v1",
 		AppName: "customer manager service",
 	})
-	app.Run(ctx)
+	app.Run(ctx, os.Interrupt)
 	defer cancel()
 }

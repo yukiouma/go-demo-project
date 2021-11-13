@@ -16,12 +16,11 @@ type HttpServer struct {
 }
 
 func (s *HttpServer) Serve(ctx context.Context) error {
-	select {
-	case <-ctx.Done():
-		return s.server.Shutdown(ctx)
-	default:
-		return s.server.ListenAndServe()
-	}
+	go func() {
+		<-ctx.Done()
+		s.server.Shutdown(ctx)
+	}()
+	return s.server.ListenAndServe()
 }
 
 func NewHttpServer(service *service.BookService, config *conf.HttpConf) appmanage.HttpServer {
