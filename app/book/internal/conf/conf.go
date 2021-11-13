@@ -1,7 +1,6 @@
 package conf
 
 import (
-	"fmt"
 	"frame/pkg/appmanage"
 )
 
@@ -48,7 +47,6 @@ func (c *HttpConf) Addr() string {
 
 func GenConf() (*ConfDB, *HttpConf, *GrpcConf, *Customer) {
 	configs := appmanage.ReadConfig2Map("book")
-	fmt.Printf("%#v\n", configs)
 	db := configs["db"].(map[string]interface{})
 	http := configs["http"].(map[string]interface{})
 	grpc := configs["grpc"].(map[string]interface{})
