@@ -2,7 +2,6 @@ syntax = "proto3";
 
 package book.v1;
 
-import "google/protobuf/timestamp.proto";
 option go_package = "go-demo-project/api/book/v1;v1";
 
 service BookService {
@@ -15,7 +14,13 @@ service BookService {
 message Book {
   int64 id = 1;
   string name = 2;
-  google.protobuf.Timestamp saledAt = 3;
+  SaleInfo saleInfo = 3;
+}
+
+message SaleInfo {
+  string saledAt = 1;
+  int64 customerId = 2;
+  string customerName = 3;
 }
 
 message BookReply {
@@ -29,6 +34,7 @@ message FindBookRequest {
 
 message SaleBookRequest {
   int64 id = 1;
+  int64 customerId = 2;
 }
 
 message NewBookRequest {

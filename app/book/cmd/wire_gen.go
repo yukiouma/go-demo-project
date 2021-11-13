@@ -16,10 +16,11 @@ import (
 
 // Injectors from wire.go:
 
-func initApp(db *conf.ConfDB, http *conf.HttpConf, grpc *conf.GrpcConf) *appmanage.AppManage {
+func initApp(db *conf.ConfDB, http *conf.HttpConf, grpc *conf.GrpcConf, customer *conf.Customer) *appmanage.AppManage {
 	fakeDB := data.NewBD(db)
 	bookRepo := data.NewBookRepo(fakeDB)
-	bookUsecase := biz.NewBookUsecase(bookRepo)
+	customerClient := data.NewCustomerClient(customer)
+	bookUsecase := biz.NewBookUsecase(bookRepo, customerClient)
 	bookService := service.NewBookService(bookUsecase)
 	httpServer := server.NewHttpServer(bookService, http)
 	grpcServer := server.NewGrpcServer(bookService, grpc)

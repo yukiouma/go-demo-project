@@ -13,9 +13,10 @@ var errNotExist = errors.New("error: record not existed")
 var errDialFailed = errors.New("error: dail failed")
 
 type row struct {
-	id      int
-	name    string
-	saledAt time.Time
+	id         int
+	name       string
+	customerId int
+	saledAt    time.Time
 }
 
 type fakeDB map[int]*row
@@ -44,9 +45,13 @@ func (r *bookRepo) FindBookByID(id int) (*biz.Book, error) {
 		return nil, errNotFound
 	}
 	return &biz.Book{
-		ID:      book.id,
-		Name:    book.name,
-		SaledAt: book.saledAt,
+		ID:   book.id,
+		Name: book.name,
+		SaleInfo: &biz.SaleInfo{
+			SaledAt:    book.saledAt,
+			CustomerId: book.customerId,
+			// TODO: customer's name
+		},
 	}, nil
 }
 
@@ -66,9 +71,8 @@ func (r *bookRepo) createBook(book *biz.Book) (*biz.Book, error) {
 		return nil, errExist
 	}
 	r.db[book.ID] = &row{
-		id:      book.ID,
-		name:    book.Name,
-		saledAt: book.SaledAt,
+		id:   book.ID,
+		name: book.Name,
 	}
 	return book, nil
 }
@@ -78,9 +82,10 @@ func (r *bookRepo) updateBook(book *biz.Book) (*biz.Book, error) {
 		return nil, errNotExist
 	}
 	r.db[book.ID] = &row{
-		id:      book.ID,
-		name:    book.Name,
-		saledAt: book.SaledAt,
+		id:         book.ID,
+		name:       book.Name,
+		saledAt:    book.SaleInfo.SaledAt,
+		customerId: book.SaleInfo.CustomerId,
 	}
 	return book, nil
 }

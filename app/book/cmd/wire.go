@@ -19,6 +19,7 @@ func initApp(
 	db *conf.ConfDB,
 	http *conf.HttpConf,
 	grpc *conf.GrpcConf,
+	customer *conf.Customer,
 ) *appmanage.AppManage {
 	panic(wire.Build(
 		server.ProvideSet,

@@ -7,7 +7,7 @@ import (
 	"github.com/google/wire"
 )
 
-var ProvideSet = wire.NewSet(NewBD, NewBookRepo)
+var ProvideSet = wire.NewSet(NewBD, NewBookRepo, NewCustomerClient)
 
 func NewBD(conf *conf.ConfDB) fakeDB {
 	db := make(fakeDB)
@@ -26,5 +26,11 @@ func NewBD(conf *conf.ConfDB) fakeDB {
 func NewBookRepo(db fakeDB) biz.BookRepo {
 	return &bookRepo{
 		db: db,
+	}
+}
+
+func NewCustomerClient(conf *conf.Customer) biz.CustomerClient {
+	return &CustomerClient{
+		addr: conf.Addr,
 	}
 }

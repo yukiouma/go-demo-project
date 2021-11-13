@@ -6,8 +6,12 @@ import (
 
 var ProvideSet = wire.NewSet(NewBookUsecase)
 
-func NewBookUsecase(repo BookRepo) *BookUsecase {
+func NewBookUsecase(
+	repo BookRepo,
+	customer CustomerClient,
+) *BookUsecase {
 	return &BookUsecase{
-		repo: repo,
+		repo:     repo,
+		customer: customer,
 	}
 }

@@ -17,7 +17,7 @@ func RegisterBookHttpServer(engine *gin.Engine, server BookServiceServer) {
 	{
 		g.GET("/find/:id", FindBookTransfer(server.FindBook))
 		g.POST("/new", NewBookTransfer(server.NewBook))
-		g.GET("/sale/:id", SaleBookTransfer(server.SaleBook))
+		g.POST("/sale", SaleBookTransfer(server.SaleBook))
 		g.DELETE("/delete/:id", DeleteBookTransfer(server.DeleteBook))
 	}
 }
@@ -59,14 +59,12 @@ func FindBookTransfer(f func(ctx context.Context, in *FindBookRequest) (*BookRep
 
 func SaleBookTransfer(f func(ctx context.Context, in *SaleBookRequest) (*BookReply, error)) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		in := new(SaleBookRequest)
-		id, err := strconv.ParseInt((c.Param("id")), 10, 64)
-		if err != nil {
-			c.String(http.StatusBadRequest, "invalid id")
+		var in SaleBookRequest
+		if err := c.ShouldBind(&in); err != nil {
+			c.String(http.StatusBadRequest, "missing field")
 			return
 		}
-		in.Id = id
-		book, err := f(context.Background(), in)
+		book, err := f(context.Background(), &in)
 		if err != nil {
 			c.String(http.StatusInternalServerError, err.Error())
 			return

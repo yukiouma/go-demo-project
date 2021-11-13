@@ -12,6 +12,10 @@ type ConfDB struct {
 	Password string
 }
 
+type Customer struct {
+	Addr string
+}
+
 type GrpcConf struct {
 	Host string
 	Port string
@@ -42,12 +46,13 @@ func (c *HttpConf) Addr() string {
 	return c.Host + ":" + c.Port
 }
 
-func GenConf() (*ConfDB, *HttpConf, *GrpcConf) {
+func GenConf() (*ConfDB, *HttpConf, *GrpcConf, *Customer) {
 	configs := appmanage.ReadConfig2Map("book")
 	fmt.Printf("%#v\n", configs)
 	db := configs["db"].(map[string]interface{})
 	http := configs["http"].(map[string]interface{})
 	grpc := configs["grpc"].(map[string]interface{})
+	customer := configs["customer"].(map[string]interface{})
 	return &ConfDB{
 			Host:     db["host"].(string),
 			Port:     db["port"].(string),
@@ -59,5 +64,7 @@ func GenConf() (*ConfDB, *HttpConf, *GrpcConf) {
 		}, &GrpcConf{
 			Host: grpc["host"].(string),
 			Port: grpc["port"].(string),
+		}, &Customer{
+			Addr: customer["addr"].(string),
 		}
 }

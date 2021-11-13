@@ -6,10 +6,16 @@ import (
 	"time"
 )
 
+type SaleInfo struct {
+	SaledAt      time.Time
+	CustomerId   int
+	CustomerName string
+}
+
 type Book struct {
-	ID      int
-	Name    string
-	SaledAt time.Time
+	ID       int
+	Name     string
+	SaleInfo *SaleInfo
 }
 
 var ErrBookNotFound = errors.New("error: book is not found")
@@ -22,7 +28,8 @@ type BookRepo interface {
 }
 
 type BookUsecase struct {
-	repo BookRepo
+	repo     BookRepo
+	customer CustomerClient
 }
 
 // 按id查找书
@@ -31,19 +38,32 @@ func (uc *BookUsecase) FindOneBook(ctx context.Context, id int) (*Book, error) {
 	if err != nil {
 		return nil, ErrBookNotFound
 	}
+	if !book.SaleInfo.SaledAt.IsZero() || book.SaleInfo.CustomerId > 0 {
+		customer, err := uc.customer.FindCustomer(ctx, book.SaleInfo.CustomerId)
+		if err != nil {
+			return book, err
+		}
+		book.SaleInfo.CustomerName = customer.Name
+	}
 	return book, nil
 }
 
-// 出售一本书（更新saled字段）
-func (uc *BookUsecase) SaleOneBook(ctx context.Context, id int) (*Book, error) {
+// 出售一本书
+func (uc *BookUsecase) SaleOneBook(ctx context.Context, id, customerId int) (*Book, error) {
 	book, err := uc.FindOneBook(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	if !book.SaledAt.IsZero() {
-		return book, ErrBookSaled
+	customer, err := uc.customer.FindCustomer(ctx, customerId)
+	if err != nil {
+		return nil, err
 	}
-	book.SaledAt = time.Now()
+	if !book.SaleInfo.SaledAt.IsZero() {
+		return nil, ErrBookSaled
+	}
+	book.SaleInfo.CustomerId = customer.Id
+	book.SaleInfo.CustomerName = customer.Name
+	book.SaleInfo.SaledAt = time.Now()
 	return uc.repo.SaveBook(book)
 }
 
