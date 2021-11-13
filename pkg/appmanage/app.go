@@ -14,9 +14,15 @@ type Server interface {
 type GrpcServer Server
 type HttpServer Server
 
+type RegisterInfo struct {
+	Appid   string
+	AppName string
+}
+
 type AppManage struct {
 	http HttpServer
 	grpc GrpcServer
+	info *RegisterInfo
 }
 
 func NewAppManage(http HttpServer, grpc GrpcServer) *AppManage {
@@ -24,6 +30,10 @@ func NewAppManage(http HttpServer, grpc GrpcServer) *AppManage {
 		http: http,
 		grpc: grpc,
 	}
+}
+
+func (manage *AppManage) Register(info *RegisterInfo) {
+	manage.info = info
 }
 
 func (manage *AppManage) Run(ctx context.Context) {

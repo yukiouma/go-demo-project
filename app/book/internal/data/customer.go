@@ -15,7 +15,8 @@ type CustomerClient struct {
 var _ biz.CustomerClient = new(CustomerClient)
 
 func (c *CustomerClient) FindCustomer(ctx context.Context, id int) (*biz.Customer, error) {
-	client, err := c.client()
+	client, conn, err := c.client()
+	defer conn.Close()
 	if err != nil {
 		return nil, err
 	}
@@ -32,11 +33,11 @@ func (c *CustomerClient) FindCustomer(ctx context.Context, id int) (*biz.Custome
 	}, nil
 }
 
-func (c *CustomerClient) client() (v1.CustomerServiceClient, error) {
+func (c *CustomerClient) client() (v1.CustomerServiceClient, *grpc.ClientConn, error) {
 	// var opts []grpc.DialOption
 	conn, err := grpc.Dial(c.addr, grpc.WithInsecure())
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return v1.NewCustomerServiceClient(conn), nil
+	return v1.NewCustomerServiceClient(conn), conn, nil
 }
