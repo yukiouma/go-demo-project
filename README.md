@@ -17,6 +17,43 @@
 
 
 
+## 实现思路
+
+
+
+### 配置信息
+
+配置信息以json的形式，放置在每个项目的`/configs`目录中，只要配置信息为http和grpc服务的host与port信息，与对应的（假的）数据库的配置信息
+
+编写一个通用读取json文件的方法，读取`/configs`目录下的json文件，并将读取结果以map的形式保存起来
+
+服务启动时，基于json的读取结果，通过需要的key从map中获取自身所需要的信息，若获取失败，则直接引发程序恐慌，终止启动
+
+
+### api定义
+
+使用proto文件定义具体服务的接口形状
+
+使用protoc来获取对应的定义文件`*.pb.go`与grpc服务的文件`*_prpc.pb.go`
+
+使用grpc服务的文件中的服务定义`type <serviceName>ServiceClient interface`，编写一个基于Gin框架的http服务定义文件`*_http.pb.go`，主要实现以下内容：
+* 为`type <serviceName>ServiceClient interface`中的每一个路由函数编写一个可以将其转换为gin.HandleFunc的方法
+* 将转换好的路由函数注册到gin的服务路由中
+
+
+
+### 依赖注入
+
+通过服务中的每一层使用wire.NewSet方法暴露出来的构造器函数，然后在cmd层的wire.go文件中使用暴露的构造器函数中的依赖定义，对各层的服务进行组装
+
+
+
+### 服务管理
+
+对每个服务中暴露出来的http和grpc服务，使用errgroup结合context进行管理，具体逻辑为当某个服务发生错误导致退出时，会激活传入服务中的context的cancel方法，使得其它服务可以被一并终止。
+
+
+
 ## 使用说明
 
 
@@ -218,17 +255,14 @@ http服务的代码桩则手动编写根据\<service\>.pb.go中的定义转换�
   依赖注入定义
 
 
-
-#### internal
-
-服务具体实现代码
-
-
-
 #### configs
 
 存放服务定义的文件，采用json格式
 
+
+#### internal
+
+服务具体实现代码
 
 
 ##### biz
@@ -300,40 +334,6 @@ http服务的代码桩则手动编写根据\<service\>.pb.go中的定义转换�
 3. 查找id为1的书籍信息
 4. 查找id为1的顾客信息
 5. id为1的顾客购买了id为1的书籍，id为1的书籍信息得到更新，追加上了购买时间与购买的顾客的信息
-
-
-
-## 实现思路
-
-
-
-### 配置信息
-
-使用json文件存储配置信息，读取时存放到一个map中
-
-服务级别的配置读取方法，则基于json的读取结果，从map中获取自身所需要的信息
-
-
-
-### api定义
-
-使用proto文件定义具体服务的接口形状
-
-使用protoc来获取对应的定义文件`*.pb.go`与grpc服务的文件`*_prpc.pb.go`
-
-使用grpc服务的文件中的服务定义`type <serviceName>ServiceClient interface`，编写一个基于Gin框架的http服务定义文件`*_http.pb.go`
-
-
-
-### 依赖注入
-
-通过服务中的每一层使用wire.NewSet方法暴露出来的构造器函数，然后在cmd层的wire.go文件中使用暴露的构造器函数中的依赖定义，对各层的服务进行组装
-
-
-
-### 服务管理
-
-对每个服务中暴露出来的http和grpc服务，使用errgroup结合context进行管理，具体逻辑为当某个服务发生错误导致退出时，会激活传入服务中的context的cancel方法，使得其它服务可以被一并终止。
 
 
 
